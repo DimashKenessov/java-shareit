@@ -1,0 +1,93 @@
+$kind: http-request
+url: localhost:8080/items
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: X-Sharer-User-Id
+    value: "{{userId}}"
+    disabled: true
+body:
+  type: text
+  content: |-
+    {
+        "name": "{{itemName}}",
+        "description": "{{itemDescription}}",
+        "available": {{itemAvailable}}
+    }
+scripts:
+  - type: beforeRequest
+    code: "const main = async () => {\r
+
+      \    const api = new API(pm);\r
+
+      \    const rnd = new RandomUtils();\r
+
+      \r
+
+      \    try {\r
+
+      \        item = rnd.getItem();\r
+
+      \        pm.collectionVariables.set(\"item\", item);\r
+
+      \        pm.collectionVariables.set(\"itemName\", item.name);\r
+
+      \        pm.collectionVariables.set(\"itemAvailable\", item.available);\r
+
+      \        pm.collectionVariables.set(\"itemDescription\", item.description);\r
+
+      \        user = await api.addUser(rnd.getUser());\r
+
+      \        pm.collectionVariables.set(\"userId\", user.id);\r
+
+      \r
+
+      \    } catch(err) {\r
+
+      \        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r
+
+      \    }\r
+
+      \r
+
+      };\r
+
+      \r
+
+      const interval = setInterval(() => {}, 1000);\r
+
+      \r
+
+      setTimeout(async () => \r
+
+      \    {\r
+
+      \        try {\r
+
+      \            await main();\r
+
+      \        } catch (e) {\r
+
+      \            console.error(e);\r
+
+      \        } finally {\r
+
+      \            clearInterval(interval);\r
+
+      \        }\r
+
+      \    },  \r
+
+      \    100 \r
+
+      );"
+    language: text/javascript
+  - type: afterResponse
+    code: "pm.test(\"Status code is 400 or 500\", function () {\r
+
+      \    pm.expect(pm.response.code).to.be.oneOf([500, 400]);\r
+
+      });\r\n"
+    language: text/javascript
+order: 2000

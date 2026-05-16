@@ -1,0 +1,100 @@
+$kind: http-request
+url: "{{baseUrl}}/items/{{itemId}}"
+method: PATCH
+headers:
+  - key: X-Sharer-User-Id
+    value: "{{userId}}"
+    disabled: true
+  - key: Content-Type
+    value: application/json
+  - key: Accept
+    value: "*/*"
+body:
+  type: text
+  content: |-
+    {
+        "name": "{{itemName}}",
+        "description": "{{itemDescription}}",
+        "available": {{itemAvailable}}
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 500", function () {
+          pm.expect(pm.response.code).to.be.oneOf([500, 400]);
+      });
+    language: text/javascript
+  - type: beforeRequest
+    code: "const main = async () => {\r
+
+      \    const api = new API(pm);\r
+
+      \    const rnd = new RandomUtils();\r
+
+      \r
+
+      \    try {\r
+
+      \        user = await api.addUser(rnd.getUser());\r
+
+      \        pm.collectionVariables.set(\"userId\", user.id);\r
+
+      \        item = rnd.getItem();\r
+
+      \        var it = await api.addItem(item, user.id)\r
+
+      \        item = rnd.getItem();\r
+
+      \        pm.collectionVariables.set(\"item\", item);        \r
+
+      \        pm.collectionVariables.set(\"itemId\", it.id);\r
+
+      \        pm.collectionVariables.set(\"itemName\", item.name);\r
+
+      \        pm.collectionVariables.set(\"itemAvailable\", item.available);\r
+
+      \        pm.collectionVariables.set(\"itemDescription\", item.description);\r
+
+      \r
+
+      \    } catch(err) {\r
+
+      \        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r
+
+      \    }\r
+
+      \r
+
+      };\r
+
+      \r
+
+      const interval = setInterval(() => {}, 1000);\r
+
+      \r
+
+      setTimeout(async () => \r
+
+      \    {\r
+
+      \        try {\r
+
+      \            await main();\r
+
+      \        } catch (e) {\r
+
+      \            console.error(e);\r
+
+      \        } finally {\r
+
+      \            clearInterval(interval);\r
+
+      \        }\r
+
+      \    },  \r
+
+      \    100 \r
+
+      );"
+    language: text/javascript
+order: 8000

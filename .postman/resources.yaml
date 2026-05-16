@@ -7,6 +7,7 @@ workspace:
 cloudResources:
   collections:
     ../postman/collections/Sprint 14 ShareIt (add-controllers): b090c8c6-7a6e-4b07-bf5e-5f42ec3c693a
+    ../postman/collections/Sprint 15 ShareIt (add-bookings): fe024f71-8bbd-4e42-8407-53db062a4b66
 
 # All resources in the `postman/` folder are automatically registered in Local View.
 # Point to additional files outside the `postman/` folder to register them individually. Example:

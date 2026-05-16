@@ -2,3 +2,7 @@ name: local
 values:
   - key: baseUrl
     value: ''
+  - key: start_null
+    value: ''
+  - key: end_null
+    value: ''
