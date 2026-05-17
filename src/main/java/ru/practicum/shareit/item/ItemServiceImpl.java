@@ -1,5 +1,7 @@
 package ru.practicum.shareit.item;
 
+import java.util.Map;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -89,12 +91,16 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new NotFoundException("User not found: " + userId));
         List<Item> items = itemRepository.findAllByOwner(owner);
         LocalDateTime now = LocalDateTime.now();
-        Sort sort = Sort.by(Sort.Direction.DESC, "start");
+        List<Booking> allBookings = bookingRepository
+                .findByItemInAndStatusOrderByStartAsc(items, BookingStatus.APPROVED);
+        Map<Item, List<Booking>> bookingsByItem = allBookings.stream()
+                .collect(Collectors.groupingBy(Booking::getItem));
         List<Comment> allComments = commentRepository.findAllByItemIn(items);
+        Map<Item, List<Comment>> commentsByItem = allComments.stream()
+                .collect(Collectors.groupingBy(Comment::getItem));
         return items.stream().map(item -> {
             ItemWithBookingsDto dto = ItemMapper.toItemWithBookingsDto(item);
-            List<Booking> bookings = bookingRepository
-                    .findByItemAndStatusOrderByStartAsc(item, BookingStatus.APPROVED);
+            List<Booking> bookings = bookingsByItem.getOrDefault(item, List.of());
             bookings.stream()
                     .filter(b -> b.getEnd().isBefore(now))
                     .reduce((first, second) -> second)
@@ -103,8 +109,8 @@ public class ItemServiceImpl implements ItemService {
                     .filter(b -> b.getStart().isAfter(now))
                     .findFirst()
                     .ifPresent(b -> dto.setNextBooking(BookingMapper.toBookingShortDto(b)));
-            List<CommentDto> comments = allComments.stream()
-                    .filter(c -> c.getItem().getId().equals(item.getId()))
+            List<CommentDto> comments = commentsByItem.getOrDefault(item, List.of())
+                    .stream()
                     .map(ItemMapper::toCommentDto)
                     .collect(Collectors.toList());
             dto.setComments(comments);

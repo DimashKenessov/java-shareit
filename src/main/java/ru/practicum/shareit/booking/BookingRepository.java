@@ -33,4 +33,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByItemInAndStatus(List<Item> items, BookingStatus status, Sort sort);
 
     List<Booking> findByItemAndStatusOrderByStartAsc(Item item, BookingStatus status);
+
+    List<Booking> findByItemInAndStatusOrderByStartAsc(List<Item> items, BookingStatus status);
 }
