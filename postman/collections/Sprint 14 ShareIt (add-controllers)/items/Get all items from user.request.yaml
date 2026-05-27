@@ -1,0 +1,80 @@
+$kind: http-request
+url: "{{baseUrl}}/items"
+method: GET
+headers:
+  X-Sharer-User-Id: "{{userId}}"
+  Accept: "*/*"
+scripts:
+  - type: afterResponse
+    code: |+
+      pm.test("Status code is 200", function () {
+          pm.response.to.be.ok;
+      });
+      pm.test("Test list item response", function () {
+          pm.response.to.be.withBody;
+          pm.response.to.be.json;
+          var jsonData = pm.response.json();
+          pm.expect(jsonData.length, 'List length must be 2').to.eql(2);
+      });
+
+    language: text/javascript
+  - type: beforeRequest
+    code: "const main = async () => {\r
+
+      \    const api = new API(pm);\r
+
+      \    const rnd = new RandomUtils();\r
+
+      \r
+
+      \    try {\r
+
+      \        user = await api.addUser(rnd.getUser());\r
+
+      \        pm.collectionVariables.set(\"userId\", user.id);\r
+
+      \        await api.addItem(rnd.getItem(), user.id)\r
+
+      \        await api.addItem(rnd.getItem(), user.id)\r
+
+      \    } catch(err) {\r
+
+      \        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r
+
+      \    }\r
+
+      \r
+
+      };\r
+
+      \r
+
+      const interval = setInterval(() => {}, 1000);\r
+
+      \r
+
+      setTimeout(async () => \r
+
+      \    {\r
+
+      \        try {\r
+
+      \            await main();\r
+
+      \        } catch (e) {\r
+
+      \            console.error(e);\r
+
+      \        } finally {\r
+
+      \            clearInterval(interval);\r
+
+      \        }\r
+
+      \    },  \r
+
+      \    100 \r
+
+      );"
+    language: text/javascript
+order: 14000
