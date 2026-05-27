@@ -1,0 +1,116 @@
+$kind: http-request
+url: localhost:8080/items
+method: POST
+headers:
+  Content-Type: application/json
+  X-Sharer-User-Id: "{{userId}}"
+body:
+  type: text
+  content: |-
+    {
+        "description": "{{itemDescription}}",
+        "available": {{itemAvailable}},
+        "requestId": {{requestId}}
+    }
+scripts:
+  - type: beforeRequest
+    code: "const main = async () => {\r
+
+      \    const api = new API(pm);\r
+
+      \    const rnd = new RandomUtils();\r
+
+      \r
+
+      \    try {\r
+
+      \        user1 = await api.addUser(rnd.getUser());\r
+
+      \        var request = await api.addRequest(rnd.getRequest(), user1.id);\r
+
+      \        pm.collectionVariables.set(\"requestId\", request.id);\r
+
+      \        user2 = await api.addUser(rnd.getUser());\r
+
+      \        pm.collectionVariables.set(\"userId\", user2.id);\r
+
+      \r
+
+      \        item = rnd.getItem();\r
+
+      \        pm.collectionVariables.set(\"item\", item);\r
+
+      \        pm.collectionVariables.set(\"itemName\", item.name);\r
+
+      \        pm.collectionVariables.set(\"itemAvailable\", item.available);\r
+
+      \        pm.collectionVariables.set(\"itemDescription\", item.description);\r
+
+      \r
+
+      \r
+
+      \    } catch(err) {\r
+
+      \        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r
+
+      \    }\r
+
+      \r
+
+      };\r
+
+      \r
+
+      const interval = setInterval(() => {}, 1000);\r
+
+      \r
+
+      setTimeout(async () => \r
+
+      \    {\r
+
+      \        try {\r
+
+      \            await main();\r
+
+      \        } catch (e) {\r
+
+      \            console.error(e);\r
+
+      \        } finally {\r
+
+      \            clearInterval(interval);\r
+
+      \        }\r
+
+      \    },  \r
+
+      \    100 \r
+
+      );"
+    language: text/javascript
+  - type: afterResponse
+    code: "pm.test(\"Status code is 400\", function () {\r
+
+      \    pm.expect(pm.response.code).to.be.oneOf([400, 500]);\r
+
+      });\r
+
+      pm.test(\"Response have body\", function () {\r
+
+      \    pm.response.to.be.withBody;\r
+
+      \    pm.response.to.be.json;\r
+
+      });\r
+
+      pm.test(\"Response data have error\", function () {\r
+
+      \    var jsonData = pm.response.json();\r
+
+      \    pm.expect(jsonData).to.have.property('error');\r
+
+      });"
+    language: text/javascript
+order: 3000
