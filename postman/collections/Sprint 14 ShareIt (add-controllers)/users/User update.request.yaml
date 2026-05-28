@@ -1,0 +1,128 @@
+$kind: http-request
+url: "{{baseUrl}}/users/{{userId}}"
+method: PATCH
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+        "name": "{{userName}}",
+        "email": "{{userEmail}}"
+    }
+scripts:
+  - type: beforeRequest
+    code: "const main = async () => {\r
+
+      \    const api = new API(pm);\r
+
+      \    const rnd = new RandomUtils();\r
+
+      \r
+
+      \    try {\r
+
+      \        user = rnd.getUser();\r
+
+      \        us = await api.addUser(user);\r
+
+      \        pm.collectionVariables.set(\"userId\", us.id);\r
+
+      \        us = rnd.getUser()\r
+
+      \        pm.collectionVariables.set(\"userName\", us.name);\r
+
+      \        pm.collectionVariables.set(\"userEmail\", us.email);\r
+
+      \    } catch(err) {\r
+
+      \        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r
+
+      \    }\r
+
+      \r
+
+      };\r
+
+      \r
+
+      const interval = setInterval(() => {}, 1000);\r
+
+      \r
+
+      setTimeout(async () => \r
+
+      \    {\r
+
+      \        try {\r
+
+      \            await main();\r
+
+      \        } catch (e) {\r
+
+      \            console.error(e);\r
+
+      \        } finally {\r
+
+      \            clearInterval(interval);\r
+
+      \        }\r
+
+      \    },  \r
+
+      \    100 \r
+
+      );"
+    language: text/javascript
+  - type: afterResponse
+    code: "pm.test(\"Status code is 200\", function () {\r
+
+      \    pm.response.to.be.ok;\r
+
+      });\r
+
+      pm.test(\"Response have body\", function () {\r
+
+      \    pm.response.to.be.withBody;\r
+
+      \    pm.response.to.be.json;\r
+
+      });\r
+
+      pm.test(\"Test user 'id' field\", function () {\r
+
+      \    var jsonData = pm.response.json();\r
+
+      \    pm.expect(jsonData).to.have.property('id');\r
+
+      \    var id = pm.collectionVariables.get(\"userId\");\r
+
+      \    pm.expect(jsonData.id, '\"id\" must be ' + id).to.eql(Number(id));\r
+
+      });\r
+
+      pm.test(\"Test user 'email' field\", function () {\r
+
+      \    var jsonData = pm.response.json();\r
+
+      \    pm.expect(jsonData).to.have.property('email');\r
+
+      \    var email = pm.collectionVariables.get(\"userEmail\");\r
+
+      \    pm.expect(jsonData.email, '\"email\" must be ' + email).to.eql(email);\r
+
+      });\r
+
+      pm.test(\"Test user 'name' field\", function () {\r
+
+      \    var jsonData = pm.response.json();\r
+
+      \    pm.expect(jsonData).to.have.property('name');\r
+
+      \    var name = pm.collectionVariables.get(\"userName\");\r
+
+      \    pm.expect(jsonData.name, '\"name\" must be ' + name).to.eql(name);\r
+
+      });\r\n"
+    language: text/javascript
+order: 5000
