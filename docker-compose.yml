@@ -1,6 +1,8 @@
 services:
   gateway:
-    build: gateway
+    build:
+      context: gateway
+      dockerfile: Dockerfile
     image: shareit-gateway
     container_name: shareit-gateway
     ports:
@@ -11,7 +13,9 @@ services:
       - SHAREIT_SERVER_URL=http://server:9090
 
   server:
-    build: server
+    build:
+      context: server
+      dockerfile: Dockerfile
     image: shareit-server
     container_name: shareit-server
     ports:
