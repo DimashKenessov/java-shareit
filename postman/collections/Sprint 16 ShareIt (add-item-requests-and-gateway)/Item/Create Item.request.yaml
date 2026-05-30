@@ -1,0 +1,122 @@
+$kind: http-request
+url: localhost:8080/items
+method: POST
+headers:
+  Content-Type: application/json
+  X-Sharer-User-Id: "{{userId}}"
+body:
+  type: text
+  content: |-
+    {
+        "name": "{{itemName}}",
+        "description": "{{itemDescription}}",
+        "available": {{itemAvailable}}
+    }
+scripts:
+  - type: beforeRequest
+    code: "const main = async () => {\r
+
+      \    const api = new API(pm);\r
+
+      \    const rnd = new RandomUtils();\r
+
+      \r
+
+      \    try {\r
+
+      \        item = rnd.getItem();\r
+
+      \        pm.collectionVariables.set(\"item\", item);\r
+
+      \        pm.collectionVariables.set(\"itemName\", item.name);\r
+
+      \        pm.collectionVariables.set(\"itemAvailable\", item.available);\r
+
+      \        pm.collectionVariables.set(\"itemDescription\", item.description);\r
+
+      \        user = await api.addUser(rnd.getUser());\r
+
+      \        pm.collectionVariables.set(\"userId\", user.id);\r
+
+      \r
+
+      \    } catch(err) {\r
+
+      \        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r
+
+      \    }\r
+
+      \r
+
+      };\r
+
+      \r
+
+      const interval = setInterval(() => {}, 1000);\r
+
+      \r
+
+      setTimeout(async () => \r
+
+      \    {\r
+
+      \        try {\r
+
+      \            await main();\r
+
+      \        } catch (e) {\r
+
+      \            console.error(e);\r
+
+      \        } finally {\r
+
+      \            clearInterval(interval);\r
+
+      \        }\r
+
+      \    },  \r
+
+      \    100 \r
+
+      );"
+    language: text/javascript
+  - type: afterResponse
+    code: "pm.test(\"Status code is 200 or 201\", function () {\r
+
+      \    pm.expect(pm.response.code).to.be.oneOf([200,201]);\r
+
+      });\r
+
+      pm.test(\"Response have body\", function () {\r
+
+      \    pm.response.to.be.withBody;\r
+
+      \    pm.response.to.be.json;\r
+
+      });\r
+
+      var item = pm.collectionVariables.get(\"item\");\r
+
+      \r
+
+      pm.test(\"Response data equal to request\", function () {\r
+
+      \    var jsonData = pm.response.json();\r
+
+      \    pm.expect(jsonData).to.have.property('id');\r
+
+      \    pm.expect(jsonData).to.have.property('name');\r
+
+      \    pm.expect(jsonData).to.have.property('description');\r
+
+      \    pm.expect(jsonData).to.have.property('available');\r
+
+      \    pm.expect(jsonData.name, `\"name\" must be ${item.name}`).to.eql(item.name);\r
+
+      \    pm.expect(jsonData.description, `\"description\" must be ${item.description}`).to.eql(item.description);\r
+
+      \    pm.expect(jsonData.available.toString(), `\"available\" must be ${item.available}`).to.eql(item.available.toString());\r
+
+      });"
+    language: text/javascript
+order: 1000

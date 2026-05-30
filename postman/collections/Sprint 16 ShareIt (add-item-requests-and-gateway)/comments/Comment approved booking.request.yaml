@@ -1,0 +1,116 @@
+$kind: http-request
+url: "{{baseUrl}}/items/{{itemId}}/comment"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: "*/*"
+  X-Sharer-User-Id: "{{userId}}"
+body:
+  type: text
+  content: |-
+    {
+        "text": "{{commentText}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |
+      pm.test("Status code is 400", function () {
+          pm.expect(pm.response.code).to.be.oneOf([400, 500])
+      });
+    language: text/javascript
+  - type: beforeRequest
+    code: "const main = async () => {\r
+
+      \    const api = new API(pm);\r
+
+      \    const rnd = new RandomUtils();\r
+
+      \r
+
+      \    try {\r
+
+      \        var moment = require('moment');\r
+
+      \        const currentDate = moment();\r
+
+      \        var start = currentDate.clone().add(1, 'seconds').format('YYYY-MM-DDTHH:mm:ss');\r
+
+      \        var end = currentDate.clone().add(2, 'seconds').format('YYYY-MM-DDTHH:mm:ss');\r
+
+      \        pm.collectionVariables.set('start', start);\r
+
+      \        pm.collectionVariables.set('end', end);\r
+
+      \        \r
+
+      \        user1 = await api.addUser(rnd.getUser());\r
+
+      \        pm.collectionVariables.set(\"user1\", user1);\r
+
+      \        user2 = await api.addUser(rnd.getUser());\r
+
+      \        pm.collectionVariables.set(\"user2\", user2);\r
+
+      \        pm.collectionVariables.set(\"userId\", user2.id);\r
+
+      \        it = rnd.getItem()\r
+
+      \        it.available = true\r
+
+      \        item = await api.addItem(it, user1.id)\r
+
+      \        pm.collectionVariables.set(\"itemId\", item.id);\r
+
+      \        pm.collectionVariables.set(\"item\", item);\r
+
+      \        book = await api.addBooking(rnd.getBooking(item.id, start, end), user2.id)\r
+
+      \        await api.approveBooking(book.id, user1.id)\r
+
+      \        pm.collectionVariables.set(\"bookingId\", book.id);\r
+
+      \        pm.collectionVariables.set(\"booking\", book);\r
+
+      \        pm.collectionVariables.set(\"commentText\", rnd.getWord(50));\r
+
+      \    } catch(err) {\r
+
+      \        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r
+
+      \    }\r
+
+      \r
+
+      };\r
+
+      \r
+
+      const interval = setInterval(() => {}, 1000);\r
+
+      \r
+
+      setTimeout(async () => \r
+
+      \    {\r
+
+      \        try {\r
+
+      \            await main();\r
+
+      \        } catch (e) {\r
+
+      \            console.error(e);\r
+
+      \        } finally {\r
+
+      \            clearInterval(interval);\r
+
+      \        }\r
+
+      \    },  \r
+
+      \    100 \r
+
+      );"
+    language: text/javascript
+order: 2000

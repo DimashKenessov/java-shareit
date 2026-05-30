@@ -22,7 +22,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/shareit
       - SPRING_DATASOURCE_USERNAME=shareit
       - SPRING_DATASOURCE_PASSWORD=shareit
-      - SPRING_SQL_INIT_MODE=always
+
   db:
     image: postgres:16.1
     container_name: postgres
