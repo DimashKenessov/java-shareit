@@ -1,0 +1,96 @@
+$kind: http-request
+url: "{{baseUrl}}/users/{{userId}}"
+method: PATCH
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+        "name": "{{userName}}",
+        "email": "{{userEmail}}"
+    }
+scripts:
+  - type: beforeRequest
+    code: "const main = async () => {\r
+
+      \    const api = new API(pm);\r
+
+      \    const rnd = new RandomUtils();\r
+
+      \r
+
+      \    try {\r
+
+      \        user = rnd.getUser();\r
+
+      \        us = await api.addUser(user);\r
+
+      \        user2 = rnd.getUser();\r
+
+      \        us2 = await api.addUser(user2)\r
+
+      \        pm.collectionVariables.set(\"userId\", us2.id);\r
+
+      \        usa = rnd.getUser()\r
+
+      \        pm.collectionVariables.set(\"userName\", usa.name);\r
+
+      \        pm.collectionVariables.set(\"userEmail\", user.email);\r
+
+      \    } catch(err) {\r
+
+      \        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r
+
+      \    }\r
+
+      \r
+
+      };\r
+
+      \r
+
+      const interval = setInterval(() => {}, 1000);\r
+
+      \r
+
+      setTimeout(async () => \r
+
+      \    {\r
+
+      \        try {\r
+
+      \            await main();\r
+
+      \        } catch (e) {\r
+
+      \            console.error(e);\r
+
+      \        } finally {\r
+
+      \            clearInterval(interval);\r
+
+      \        }\r
+
+      \    },  \r
+
+      \    100 \r
+
+      );"
+    language: text/javascript
+  - type: afterResponse
+    code: "pm.test(\"Status code is 409\", function () {\r
+
+      \    pm.expect(pm.response.code).to.be.oneOf([409, 500]);\r
+
+      });\r
+
+      pm.test(\"Response have body\", function () {\r
+
+      \    pm.response.to.be.withBody;\r
+
+      \    pm.response.to.be.json;\r
+
+      });\r\n"
+    language: text/javascript
+order: 8000

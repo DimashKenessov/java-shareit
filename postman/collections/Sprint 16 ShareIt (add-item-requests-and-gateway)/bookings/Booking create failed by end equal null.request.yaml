@@ -1,0 +1,31 @@
+$kind: http-request
+url: "{{baseUrl}}/bookings"
+method: POST
+headers:
+  X-Sharer-User-Id: "{{userId}}"
+  Content-Type: application/json
+  Accept: "*/*"
+body:
+  type: text
+  content: |-
+    {
+        "itemId": {{itemId}},
+        "start": "{{start}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 400", function () {
+          pm.expect(pm.response.code).to.be.oneOf([400, 500]);
+      });
+    language: text/javascript
+  - type: beforeRequest
+    code: "var moment = require('moment');\r
+
+      \r
+
+      var start = moment().add(2, 'd');\r
+
+      pm.environment.set('end_null', start.format('YYYY-MM-DDTHH:mm:ss'));\r\n"
+    language: text/javascript
+order: 7000
