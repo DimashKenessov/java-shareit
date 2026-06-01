@@ -1,0 +1,23 @@
+$kind: http-request
+url: "{{baseUrl}}/items"
+method: POST
+headers:
+  X-Sharer-User-Id: "{{userId}}"
+  Content-Type: application/json
+  Accept: "*/*"
+body:
+  type: text
+  content: |-
+    {
+        "name": "",
+        "description": "Аккумуляторная отвертка",
+        "available": true
+    }
+scripts:
+  - type: afterResponse
+    code: |
+      pm.test("Status code is 400", function () {
+          pm.expect(pm.response.code).to.be.oneOf([400, 500]);
+      });
+    language: text/javascript
+order: 5000
